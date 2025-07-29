@@ -19,6 +19,11 @@ class ErrorWithParent extends Error {
 export function searchProducts () {
   return (req: Request, res: Response, next: NextFunction) => {
     let criteria: any = req.query.q === 'undefined' ? '' : req.query.q ?? ''
+    if (typeof criteria !== 'string') {
+      // Reject if criteria is not a string (e.g., array or object)
+      res.status(400).json({ error: 'Invalid query parameter' })
+      return
+    }
     criteria = (criteria.length <= 200) ? criteria : criteria.substring(0, 200)
     models.sequelize.query(`SELECT * FROM Products WHERE ((name LIKE '%${criteria}%' OR description LIKE '%${criteria}%') AND deletedAt IS NULL) ORDER BY name`) // vuln-code-snippet vuln-line unionSqlInjectionChallenge dbSchemaChallenge
       .then(([products]: any) => {
